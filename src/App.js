@@ -1,11 +1,10 @@
 import React from 'react'
 import logo from './logo.svg';
 import './App.css';
+import { useState} from 'react';
 
-const ALLCATEGORIESURL = 'https://api.chucknorris.io/jokes/categories'
-const RANDOMJOKEBYCATURL = 'https://api.chucknorris.io/jokes/random?category=' // remember to fill this
-const ALLLJOKESBYKEYWORD = 'https://api.chucknorris.io/jokes/search?query=' // remember to fill this
-const launchErrorAlert = () => setTimeout(() => window.alert('errore!'), 500) 
+const ALLLJOKESBYKEYWORD = 'https://api.chucknorris.io/jokes/search?query=' 
+
 
 // classe 'App-logo-spinning' durante il caricamento, altrimenti classe 'App-logo'
 const Logo = ({ loading }) => {
@@ -13,80 +12,73 @@ const Logo = ({ loading }) => {
     <img
       src={logo}
       alt='interactive-logo'
-      // ... 
+      className={`App-logo${loading ? '-spinning':''}`}
     />
   )
 }
 
-const CategoryButton = ({ title, onClick }) => {
-  return null
-  // <button className="Cat-button" ... >
-  //   <code>{title}</code>
-  // </button>
-}
 
 
-const CategoriesList = ({ categories, onCategoryClick }) => {
-  return null
-  // per ciascun elemento di 'categories' renderizzare il componente <CategoryButton />
-}
+
 
 const Joke = ({ value, categories }) => {
-  return null
-  // <div className="Joke">
-  //   <code className="Joke-Value">{value}</code>
-  //     per ciascun elemento di 'categories', renderizzare:
-  //     <span className="Selected-Cat" ... >
-  //       <code>{* QUI LA STRINGA DELLA SINGOLA CATEGORIA *}</code>
-  //     </span>
-  // </div>
+  return (
+   <div className="Joke">
+     <code className="Joke-Value">{value}</code>
+     {Array.isArray(categories) && categories.map((category,index)=>
+      <span className="Selected-Cat" key={index} >
+        <code>{category}</code>
+           </span>
+           )}
+      </div>
+      )
 }
 
-// class App extends React.Component {
+
 function App() {
-  // qui tutto ciò che serve al componente per essere inizializzato
+  //qui tutto ciò che serve al componente per essere inizializzato
+const [loading , setLoading] = useState(false)
+const [fetchedJoke, setFetchedJoke]= useState({})
+  const [inputText, setInputText ] = useState('')
+  
+const getJokeByKeyword = async()=>{
+  let firstJoke ={}
+  try{
+    setLoading(true)
+    let response = await fetch (`${ALLLJOKESBYKEYWORD}${inputText}`)
+    let data = await response.json()
+    firstJoke = {...data.result[0]}
+  }catch(err){
 
-  // getAllCategories
-  // funzione che deve recuperare l'array di tutte le categorie esistenti e salvarlo
-
-  // onCategoryClick
-  // funzione richiamata al click del componente CategoryButton
-
-  // getRandomJokeByCat
-  // funzione che recupera una singola barzelletta e la salva
-
-  // getJokeByKeyword
-  // funzione che recupera le barzellette contenenti la parola chiave
-  // digitata nel campo di testo
-
-  // onInputTextChange
-  // handler per l'input di testo
-
-  // qui i lifecycle methods
-
-  // render () {
+  }finally{
+    setLoading(false)
+    setFetchedJoke(firstJoke)
+  }
+}
+  
+   const onInputTextChange = (event) => 
+   setInputText(event.target.value)
+  
     return (
       <div className="App">
         <div className="App-header">
           <Logo
-            // ...
+           loading ={loading}
           />
           <input
             type="search"
             id="search" name="search"
             placeholder="Enter keyword here"
-            // ...
+            onChange = {onInputTextChange}
+            value= {inputText}
           />
           <button
             className="Search-Button"
-            // ...
+            onClick={getJokeByKeyword}
           >
             <code>CLICK TO SEARCH!</code>
           </button>
-          <code>or: </code>
-          <CategoriesList
-            // ...
-          />
+        
         </div>
         <div className="Content">
           <img
@@ -94,28 +86,19 @@ function App() {
             className="Chuck-Logo"
             alt="chuck-logo"
           />
-          <code>
-            <h2>
-              SELECTED CATEGORY:
-              <span className="Selected-Cat">
-                {/* QUI LA CATEGORIA SELEZIONATA */}
-              </span>
-            </h2>
-          </code>
-          <button
-            className="Random-Button"
-            // ...
-          >
-            <h2>GET RANDOM JOKE FOR SELECTED CATEGORY</h2>
-          </button>
-          {/* <Joke ... /> */}
+          {Object.keys(fetchedJoke).length > 0 && <Joke
+          value={fetchedJoke.value}
+        categories={fetchedJoke.categories}
+/>}
         </div>
+          
+
         <div className="footer">
         <code>Esame di React per cfp-futura. Grazie ad <a href="https://api.chucknorris.io">api.chucknorris.io</a> per l'immagine e le api. Docente: Vito Vitale. Studente: </code>
         </div>
       </div>
     );
-  // }
+  
 };
 
 export default App;
